@@ -1,0 +1,98 @@
+#+Title: Org Babel functions for CFEngine 3
+
+
+* Usage 
+The =--no-locks= argument is passed by default. To use locks set the header
+argument =use-locks= to =yes=.
+
+#+BEGIN_EXAMPLE
+#+BEGIN_SRC cfengine3 :use-locks yes
+  bundle agent main
+  {
+    reports:
+
+      "My Content";
+  }
+#+END_SRC
+#+END_EXAMPLE
+
+The standard library is included by default via body file control. To avoid this
+define set =include-stdlib= to =no= for example:
+
+#+BEGIN_EXAMPLE
+#+BEGIN_SRC cfengine3 :include-stdlib no
+  bundle agent main
+  {
+    reports:
+
+      "My Content"
+        printfile => cat($(this.promise_filename));
+  }
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+/home/nickanderson/org/cfengine3-15841vLB:6:0: error: Undefined body cat with type printfile
+   error: Policy failed validation with command '"/home/nickanderson/.cfagent/bin/cf-promises" -c "/home/nickanderson/org/cfengine3-15841vLB"'
+   error: CFEngine was not able to get confirmation of promises from cf-promises, so going to failsafe
+   error: CFEngine failsafe.cf: /home/nickanderson/.cfagent/inputs /home/nickanderson/.cfagent/inputs/failsafe.cf
+   error: No suitable server found
+   error: No suitable server found
+R: Built-in failsafe policy triggered
+  notice: Q: ".../cf-agent" -f /":    error: No suitable server found
+Q: ".../cf-agent" -f /":    error: No suitable server found
+Q: ".../cf-agent" -f /":    error: No suitable server found
+#+end_example
+#+END_EXAMPLE
+
+You can specify the =bundlesequence= by setting the =bundlesequence= header. For
+example:
+
+#+BEGIN_EXAMPLE
+#+BEGIN_SRC cfengine3 :bundlesequence one,two
+  bundle agent one
+  {
+    reports:
+      "Running bundle $(this.bundle)";
+  }
+  bundle agent two
+  {
+
+    reports:
+      "Running bundle $(this.bundle)";
+  }
+#+END_SRC
+
+#+RESULTS:
+: R: Running bundle one
+: R: Running bundle two
+#+END_EXAMPLE
+
+You can define additional classes by setting the =define= header.
+
+#+BEGIN_EXAMPLE
+#+BEGIN_SRC cfengine3 :define EXTRA,MORE
+  bundle agent main
+  {
+    reports:
+      EXTRA::
+       "EXTRA Class defined";
+      MORE::
+        "EVEN MORE";
+  }
+#+END_SRC
+
+#+RESULTS:
+: R: EXTRA Class defined
+: R: EVEN MORE
+#+END_EXAMPLE
+
+
+* Installation
+
+Clone the repo, add it to your load path
+
+#+BEGIN_SRC elisp
+(add-to-list 'load-path "~/src/ob-cfengine3/")
+(require 'ob-cfengine3)
+#+END_SRC
