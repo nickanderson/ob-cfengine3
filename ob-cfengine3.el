@@ -9,14 +9,6 @@
 ;;
 ;;; Code:
 
-(defconst org-babel-header-args:cfengine3
-  '(
-    (no-lock . :any)
-    (include-stdlib . :any)
-    (define . :any)
-    (bundlesequence . :any))
-  "CFEngine specific header arguments.")
-
 (defvar ob-cfengine3-command "/var/cfengine/bin/cf-agent"
   "Name of command to use for executing cfengine policy.")
 
@@ -28,6 +20,16 @@ Note that --file will be appended to the options.")
   "File control body to include the standard libriary from $(sys.libdir).
 It is usefult to inject into an example source block before execution.")
 
+;;;###autoload
+(defconst ob-cfengine3-header-args-cfengine3
+  '(
+    (no-lock . :any)
+    (include-stdlib . :any)
+    (define . :any)
+    (bundlesequence . :any))
+  "CFEngine specific header arguments.")
+
+;;;###autoload
 (defun org-babel-execute:cfengine3 (body params)
   "Actuate a block of CFEngine 3 policy.
 This function is called by `org-babel-execute-src-block'.
@@ -60,6 +62,11 @@ This function is called by `org-babel-execute-src-block'.
         " "
         (format " --file %s" tempfile)))
     (delete-file tempfile))))
+
+;;;###autoload
+(eval-after-load "org"
+  '(add-to-list 'org-src-lang-modes '("cfengine3" . cf3))
+  '(add-to-list 'org-babel-tangle-lang-exts '("cfengine3" . "cf")))
 
 (provide 'ob-cfengine3)
 
