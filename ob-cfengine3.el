@@ -29,8 +29,6 @@
 ;; Execute CFEngine 3 policy inside org-mode src blocks.
 
 ;;; Code:
-(require 'org)
-(require 'ob)
 
 (defvar ob-cfengine3-command "cf-agent"
   "Name of command to use for executing cfengine policy.")
