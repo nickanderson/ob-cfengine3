@@ -24,7 +24,6 @@
 ;; URL: https://github.com/nickanderson/ob-cfengine3
 ;; Version: 0.0.1
 
-
 ;;; Commentary:
 ;; Execute CFEngine 3 policy inside org-mode src blocks.
 
