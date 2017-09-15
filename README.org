@@ -90,9 +90,16 @@ You can define additional classes by setting the =define= header.
 
 * Installation
 
+** From source
 Clone the repo, add it to your load path
 
 #+BEGIN_SRC elisp
 (add-to-list 'load-path "~/src/ob-cfengine3/")
 (require 'ob-cfengine3)
+#+END_SRC
+
+** Using package
+
+#+BEGIN_SRC elisp
+  (ob-cfengine3 :repo "nickanderson/ob-cfengine3" :fetcher github)
 #+END_SRC
