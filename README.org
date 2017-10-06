@@ -20,7 +20,7 @@ The standard library is included by default via body file control. To avoid this
 define set =include-stdlib= to =no= for example:
 
 #+BEGIN_EXAMPLE
-#+BEGIN_SRC cfengine3 :include-stdlib no
+,#+BEGIN_SRC cfengine3 :include-stdlib no
   bundle agent main
   {
     reports:
@@ -28,7 +28,7 @@ define set =include-stdlib= to =no= for example:
       "My Content"
         printfile => cat($(this.promise_filename));
   }
-#+END_SRC
+,#+END_SRC
 
 #+RESULTS:
 #+begin_example
