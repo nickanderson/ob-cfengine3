@@ -49,7 +49,7 @@ You can specify the =bundlesequence= by setting the =bundlesequence= header. For
 example:
 
 #+BEGIN_EXAMPLE
-#+BEGIN_SRC cfengine3 :bundlesequence one,two
+,#+BEGIN_SRC cfengine3 :bundlesequence one,two
   bundle agent one
   {
     reports:
@@ -61,7 +61,7 @@ example:
     reports:
       "Running bundle $(this.bundle)";
   }
-#+END_SRC
+,#+END_SRC
 
 #+RESULTS:
 : R: Running bundle one
@@ -71,7 +71,7 @@ example:
 You can define additional classes by setting the =define= header.
 
 #+BEGIN_EXAMPLE
-#+BEGIN_SRC cfengine3 :define EXTRA,MORE
+,#+BEGIN_SRC cfengine3 :define EXTRA,MORE
   bundle agent main
   {
     reports:
@@ -80,7 +80,7 @@ You can define additional classes by setting the =define= header.
       MORE::
         "EVEN MORE";
   }
-#+END_SRC
+,#+END_SRC
 
 #+RESULTS:
 : R: EXTRA Class defined
