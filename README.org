@@ -6,14 +6,14 @@ The =--no-locks= argument is passed by default. To use locks set the header
 argument =use-locks= to =yes=.
 
 #+BEGIN_EXAMPLE
-#+BEGIN_SRC cfengine3 :use-locks yes
+,#+BEGIN_SRC cfengine3 :use-locks yes
   bundle agent main
   {
     reports:
 
       "My Content";
   }
-#+END_SRC
+,#+END_SRC
 #+END_EXAMPLE
 
 The standard library is included by default via body file control. To avoid this
@@ -30,8 +30,8 @@ define set =include-stdlib= to =no= for example:
   }
 ,#+END_SRC
 
-#+RESULTS:
-#+begin_example
+,#+RESULTS:
+,#+begin_example
 /home/nickanderson/org/cfengine3-15841vLB:6:0: error: Undefined body cat with type printfile
    error: Policy failed validation with command '"/home/nickanderson/.cfagent/bin/cf-promises" -c "/home/nickanderson/org/cfengine3-15841vLB"'
    error: CFEngine was not able to get confirmation of promises from cf-promises, so going to failsafe
@@ -42,7 +42,7 @@ R: Built-in failsafe policy triggered
   notice: Q: ".../cf-agent" -f /":    error: No suitable server found
 Q: ".../cf-agent" -f /":    error: No suitable server found
 Q: ".../cf-agent" -f /":    error: No suitable server found
-#+end_example
+,#+end_example
 #+END_EXAMPLE
 
 You can specify the =bundlesequence= by setting the =bundlesequence= header. For
@@ -63,7 +63,7 @@ example:
   }
 ,#+END_SRC
 
-#+RESULTS:
+,#+RESULTS:
 : R: Running bundle one
 : R: Running bundle two
 #+END_EXAMPLE
