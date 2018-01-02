@@ -158,7 +158,7 @@ that are not kept and promises that explicitly output information (like a
 ,#+end_example
 #+END_EXAMPLE
 
-*** Run with verbose level output
+*** Run with debug level output
 
 #+BEGIN_EXAMPLE
 ,#+BEGIN_SRC cfengine3 :debug yes
