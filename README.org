@@ -4,7 +4,7 @@
 - [[#usage][Usage]]
   - [[#respect-promise-locks][Respect promise locks]]
   - [[#dont-automatically-include-the-stdlib][Don't automatically include the stdlib]]
-  - [[#specify-the-bundlesequence][Specify the =bundlesequence=]]
+  - [[#specify-the-bundlesequence][Specify the bundlesequence]]
   - [[#define-additional-classes][Define additional classes]]
   - [[#change-the-output-log-level][Change the output log level]]
 - [[#installation][Installation]]
@@ -60,7 +60,7 @@ define set =include-stdlib= to =no= for example:
 ,#+end_example
 #+END_EXAMPLE
 
-** Specify the =bundlesequence=
+** Specify the bundlesequence
 
 You can specify the =bundlesequence= by setting the =bundlesequence= header. For
 example:
@@ -211,6 +211,9 @@ Clone the repo, add it to your load path
 #+END_SRC
 
 ** Using package
+:PROPERTIES:
+:ID:       9ceba74e-30f0-49e4-a5ad-f3226514ea87
+:END:
 
 #+BEGIN_SRC elisp
   (ob-cfengine3 :repo "nickanderson/ob-cfengine3" :fetcher github)
