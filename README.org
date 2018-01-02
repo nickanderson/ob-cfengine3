@@ -19,14 +19,14 @@ The =--no-locks= argument is passed by default. To use locks set the header
 argument =use-locks= to =yes=.
 
 #+BEGIN_EXAMPLE
-#+BEGIN_SRC cfengine3 :use-locks yes
+,#+BEGIN_SRC cfengine3 :use-locks yes
   bundle agent main
   {
     reports:
 
       "My Content";
   }
-#+END_SRC
+,#+END_SRC
 #+END_EXAMPLE
 
 ** Don't automatically include the stdlib
@@ -46,18 +46,18 @@ define set =include-stdlib= to =no= for example:
 ,#+END_SRC
 
 #+RESULTS:
-#+begin_example
-/home/nickanderson/org/cfengine3-15841vLB:6:0: error: Undefined body cat with type printfile
-   error: Policy failed validation with command '"/home/nickanderson/.cfagent/bin/cf-promises" -c "/home/nickanderson/org/cfengine3-15841vLB"'
-   error: CFEngine was not able to get confirmation of promises from cf-promises, so going to failsafe
-   error: CFEngine failsafe.cf: /home/nickanderson/.cfagent/inputs /home/nickanderson/.cfagent/inputs/failsafe.cf
-   error: No suitable server found
-   error: No suitable server found
-R: Built-in failsafe policy triggered
-  notice: Q: ".../cf-agent" -f /":    error: No suitable server found
-Q: ".../cf-agent" -f /":    error: No suitable server found
-Q: ".../cf-agent" -f /":    error: No suitable server found
-#+end_example
+,#+begin_example
+  /home/nickanderson/org/cfengine3-15841vLB:6:0: error: Undefined body cat with type printfile
+     error: Policy failed validation with command '"/home/nickanderson/.cfagent/bin/cf-promises" -c "/home/nickanderson/org/cfengine3-15841vLB"'
+     error: CFEngine was not able to get confirmation of promises from cf-promises, so going to failsafe
+     error: CFEngine failsafe.cf: /home/nickanderson/.cfagent/inputs /home/nickanderson/.cfagent/inputs/failsafe.cf
+     error: No suitable server found
+     error: No suitable server found
+  R: Built-in failsafe policy triggered
+    notice: Q: ".../cf-agent" -f /":    error: No suitable server found
+  Q: ".../cf-agent" -f /":    error: No suitable server found
+  Q: ".../cf-agent" -f /":    error: No suitable server found
+,#+end_example
 #+END_EXAMPLE
 
 ** Specify the =bundlesequence=
@@ -80,7 +80,7 @@ example:
   }
 ,#+END_SRC
 
-#+RESULTS:
+,#+RESULTS:
 : R: Running bundle one
 : R: Running bundle two
 #+END_EXAMPLE
@@ -101,10 +101,10 @@ You can define additional classes by setting the =define= header.
   }
 ,#+END_SRC
 
-#+RESULTS:
+,#+RESULTS:
 : R: EXTRA Class defined
 : R: EVEN MORE
-    #+END_EXAMPLE
+#+END_EXAMPLE
 
 ** Change the output log level
 
@@ -115,17 +115,17 @@ that are not kept and promises that explicitly output information (like a
 *** Run with inform level output
 
 #+BEGIN_EXAMPLE
-  #+BEGIN_SRC cfengine3 :info yes
-    bundle agent main
-    {
-      commands:
-        "/bin/true";
-    }
-  #+END_SRC
+,#+BEGIN_SRC cfengine3 :info yes
+  bundle agent main
+  {
+    commands:
+      "/bin/true";
+  }
+,#+END_SRC
 #+END_EXAMPLE
 
 #+BEGIN_EXAMPLE
-  #+RESULTS:
+,#+RESULTS:
   :     info: Executing 'no timeout' ... '/bin/true'
   :     info: Completed execution of '/bin/true'
 #+END_EXAMPLE
@@ -133,18 +133,18 @@ that are not kept and promises that explicitly output information (like a
 *** Run with verbose level output
 
 #+BEGIN_EXAMPLE
-  #+BEGIN_SRC cfengine3 :verbose yes
-    bundle agent main
-    {
-      commands:
-        "/bin/true";
-    }
-  #+END_SRC
+,#+BEGIN_SRC cfengine3 :verbose yes
+  bundle agent main
+  {
+    commands:
+      "/bin/true";
+  }
+,#+END_SRC
 #+END_EXAMPLE
 
 #+BEGIN_EXAMPLE
-  #+RESULTS:
-  #+begin_example
+,#+RESULTS:
+,#+begin_example
    verbose: Could not open extension plugin 'cfengine-enterprise.so' from '/home/nickanderson/.cfagent/lib/cfengine-enterprise.so': (not installed)
    verbose: Successfully opened extension plugin 'cfengine-enterprise.so' from '/var/cfengine/lib/cfengine-enterprise.so'
    verbose: Successfully loaded extension plugin 'cfengine-enterprise.so'
@@ -155,49 +155,49 @@ that are not kept and promises that explicitly output information (like a
   ... snipped for brevity
    verbose: No lock purging scheduled
    verbose: Outcome of version (not specified) (agent-0): Promises observed - Total promise compliance: 86% kept, 14% repaired, 0% not kept (out of 7 events). User promise compliance: 86% kept, 14% repaired, 0% not kept (out of 7 events). CFEngine system compliance: 0% kept, 0% repaired, 0% not kept (out of 0 events).
-  #+end_example
+,#+end_example
 #+END_EXAMPLE
 
 *** Run with verbose level output
 
 #+BEGIN_EXAMPLE
-  #+BEGIN_SRC cfengine3 :debug yes
-    bundle agent main
-    {
-      commands:
-        "/bin/true";
-    }
-  #+END_SRC
+,#+BEGIN_SRC cfengine3 :debug yes
+  bundle agent main
+  {
+    commands:
+      "/bin/true";
+  }
+,#+END_SRC
 #+END_EXAMPLE
 
 #+BEGIN_EXAMPLE
-  #+RESULTS:
-  #+begin_example
-     debug: Trying to shlib_open extension plugin 'cfengine-enterprise.so' from '/home/nickanderson/.cfagent/lib/cfengine-enterprise.so'
-     debug: Could not open shared library: No such file or directory
-   verbose: Could not open extension plugin 'cfengine-enterprise.so' from '/home/nickanderson/.cfagent/lib/cfengine-enterprise.so': (not installed)
-     debug: Trying to shlib_open extension plugin 'cfengine-enterprise.so' from '/var/cfengine/lib/cfengine-enterprise.so'
-   verbose: Successfully opened extension plugin 'cfengine-enterprise.so' from '/var/cfengine/lib/cfengine-enterprise.so'
-   verbose: Successfully loaded extension plugin 'cfengine-enterprise.so'
-     debug: Setting hard class: default:debug_mode
-     debug: Setting hard class: default:opt_debug
-     debug: Setting hard class: default:verbose_mode
-     debug: Setting hard class: default:inform_mode
-   verbose:  CFEngine Core 3.11.0
-   verbose: ----------------------------------------------------------------
-   verbose:  Initialization preamble 
-   verbose: ----------------------------------------------------------------
-  ... snipped for brevity
-   verbose: No lock purging scheduled
-     debug: Entering lock operation in 'FindLockTime()': lock_id = 'CF_CRITICAL_SECTION', lock_checksum = 'CF_CRITICAL_SECTION', lock.pid = '0', lock.time = '0', lock.process_start_time = '0'
-     debug: Exiting lock operation in 'FindLockTime()': lock_id = 'CF_CRITICAL_SECTION', lock_checksum = 'CF_CRITICAL_SECTION', lock.pid = '0', lock.time = '0', lock.process_start_time = '0'
-     debug: Entering lock operation in 'WriteLockData()': lock_id = 'CF_CRITICAL_SECTION', lock_checksum = 'CF_CRITICAL_SECTION', lock.pid = '30808', lock.time = '1514915506', lock.process_start_time = '1026478'
-     debug: Exiting lock operation in 'WriteLockData()': lock_id = 'CF_CRITICAL_SECTION', lock_checksum = 'CF_CRITICAL_SECTION', lock.pid = '30808', lock.time = '1514915506', lock.process_start_time = '1026478'
-     debug: Entering lock operation in 'RemoveLock()'. lock_id = 'CF_CRITICAL_SECTION', lock_checksum = 'CF_CRITICAL_SECTION'
-     debug: Exiting lock operation in 'RemoveLock()'. lock_id = 'CF_CRITICAL_SECTION', lock_checksum = 'CF_CRITICAL_SECTION'
-     debug: VariableTableGet(default:control_common.version): NOT FOUND
-   verbose: Outcome of version (not specified) (agent-0): Promises observed - Total promise compliance: 86% kept, 14% repaired, 0% not kept (out of 7 events). User promise compliance: 86% kept, 14% repaired, 0% not kept (out of 7 events). CFEngine system compliance: 0% kept, 0% repaired, 0% not kept (out of 0 events).
-  #+end_example
+,#+RESULTS:
+,#+begin_example
+   debug: Trying to shlib_open extension plugin 'cfengine-enterprise.so' from '/home/nickanderson/.cfagent/lib/cfengine-enterprise.so'
+   debug: Could not open shared library: No such file or directory
+ verbose: Could not open extension plugin 'cfengine-enterprise.so' from '/home/nickanderson/.cfagent/lib/cfengine-enterprise.so': (not installed)
+   debug: Trying to shlib_open extension plugin 'cfengine-enterprise.so' from '/var/cfengine/lib/cfengine-enterprise.so'
+ verbose: Successfully opened extension plugin 'cfengine-enterprise.so' from '/var/cfengine/lib/cfengine-enterprise.so'
+ verbose: Successfully loaded extension plugin 'cfengine-enterprise.so'
+   debug: Setting hard class: default:debug_mode
+   debug: Setting hard class: default:opt_debug
+   debug: Setting hard class: default:verbose_mode
+   debug: Setting hard class: default:inform_mode
+ verbose:  CFEngine Core 3.11.0
+ verbose: ----------------------------------------------------------------
+ verbose:  Initialization preamble 
+ verbose: ----------------------------------------------------------------
+... snipped for brevity
+ verbose: No lock purging scheduled
+   debug: Entering lock operation in 'FindLockTime()': lock_id = 'CF_CRITICAL_SECTION', lock_checksum = 'CF_CRITICAL_SECTION', lock.pid = '0', lock.time = '0', lock.process_start_time = '0'
+   debug: Exiting lock operation in 'FindLockTime()': lock_id = 'CF_CRITICAL_SECTION', lock_checksum = 'CF_CRITICAL_SECTION', lock.pid = '0', lock.time = '0', lock.process_start_time = '0'
+   debug: Entering lock operation in 'WriteLockData()': lock_id = 'CF_CRITICAL_SECTION', lock_checksum = 'CF_CRITICAL_SECTION', lock.pid = '30808', lock.time = '1514915506', lock.process_start_time = '1026478'
+   debug: Exiting lock operation in 'WriteLockData()': lock_id = 'CF_CRITICAL_SECTION', lock_checksum = 'CF_CRITICAL_SECTION', lock.pid = '30808', lock.time = '1514915506', lock.process_start_time = '1026478'
+   debug: Entering lock operation in 'RemoveLock()'. lock_id = 'CF_CRITICAL_SECTION', lock_checksum = 'CF_CRITICAL_SECTION'
+   debug: Exiting lock operation in 'RemoveLock()'. lock_id = 'CF_CRITICAL_SECTION', lock_checksum = 'CF_CRITICAL_SECTION'
+   debug: VariableTableGet(default:control_common.version): NOT FOUND
+ verbose: Outcome of version (not specified) (agent-0): Promises observed - Total promise compliance: 86% kept, 14% repaired, 0% not kept (out of 7 events). User promise compliance: 86% kept, 14% repaired, 0% not kept (out of 7 events). CFEngine system compliance: 0% kept, 0% repaired, 0% not kept (out of 0 events).
+,#+end_example
 #+END_EXAMPLE
 
 * Installation
