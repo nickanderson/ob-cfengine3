@@ -22,7 +22,7 @@
 ;; Author: Nick Anderson <nick@cmdln.org>
 ;; Keywords: tools, convenience
 ;; URL: https://github.com/nickanderson/ob-cfengine3
-;; Version: 0.0.2
+;; Version: 0.0.3
 
 ;;; Commentary:
 ;; Execute CFEngine 3 policy inside org-mode src blocks.
@@ -99,6 +99,16 @@ This function is called by `org-babel-execute-src-block'.
 
 (add-to-list 'org-src-lang-modes '("cfengine3" . cfengine3))
 (add-to-list 'org-babel-tangle-lang-exts '("cfengine3" . "cf"))
+
+(setq org-babel-default-header-args:cfengine3
+      '((:exports  . "both")
+        ;; I don't know how to make it use the identity format directly
+        ;;(:tangle-mode  . 384) ;; (identity #o600) The standard default
+        (:tangle-mode  . 448)   ;; (identity #o700) Since we write the shebang, lets see how useful execution bit is
+        (:shebang . "#!/var/cfengine/bin/cf-agent -f-")
+        ;; By default, includ the standard library for exported files. To disable this set the :prologue header arg
+        (:prologue . "body file control\n{\n      inputs => { '$(sys.libdir)/stdlib.cf' };\n}\n")
+        (:results  . "output")))
 
 (provide 'ob-cfengine3)
 ;;; ob-cfengine3.el ends here

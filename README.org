@@ -7,15 +7,16 @@
   - [[#specify-the-bundlesequence][Specify the bundlesequence]]
   - [[#define-additional-classes][Define additional classes]]
   - [[#change-the-output-log-level][Change the output log level]]
+  - [[#tangled-src-blocks][Tangled SRC blocks]]
 - [[#installation][Installation]]
   - [[#from-source][From source]]
   - [[#using-package][Using package]]
 
-* Usage 
+* Usage
 
 ** Respect promise locks
 
-The =--no-locks= argument is passed by default. To use locks set the header
+The =--no-lock= argument is passed by default. To use locks set the header
 argument =use-locks= to =yes=.
 
 #+BEGIN_EXAMPLE
@@ -150,7 +151,7 @@ that are not kept and promises that explicitly output information (like a
    verbose: Successfully loaded extension plugin 'cfengine-enterprise.so'
    verbose:  CFEngine Core 3.11.0
    verbose: ----------------------------------------------------------------
-   verbose:  Initialization preamble 
+   verbose:  Initialization preamble
    verbose: ----------------------------------------------------------------
   ... snipped for brevity
    verbose: No lock purging scheduled
@@ -185,7 +186,7 @@ that are not kept and promises that explicitly output information (like a
    debug: Setting hard class: default:inform_mode
  verbose:  CFEngine Core 3.11.0
  verbose: ----------------------------------------------------------------
- verbose:  Initialization preamble 
+ verbose:  Initialization preamble
  verbose: ----------------------------------------------------------------
 ... snipped for brevity
  verbose: No lock purging scheduled
@@ -199,6 +200,119 @@ that are not kept and promises that explicitly output information (like a
  verbose: Outcome of version (not specified) (agent-0): Promises observed - Total promise compliance: 86% kept, 14% repaired, 0% not kept (out of 7 events). User promise compliance: 86% kept, 14% repaired, 0% not kept (out of 7 events). CFEngine system compliance: 0% kept, 0% repaired, 0% not kept (out of 0 events).
 ,#+end_example
 #+END_EXAMPLE
+
+** Tangled SRC blocks
+
+By default, cfengine3 =SRC= blocks are not tangled. To tangle the blocks to a
+file, use the =:tangle= header argument.
+
+When a file is tangled, a shebang is automatically added to allow for easy
+execution. To change or disable the shebang use the =:shebang= header argument.
+
+#+CAPTION: Example cfengine3 SRC block with shebang disabled
+#+BEGIN_SRC org
+  ,#+BEGIN_SRC cfengine3 :shebang :tangle /tmp/example.cf
+    bundle agent example
+    {
+       reports:
+         "CFEngine $(sys.cf_version)";
+    }
+    bundle agent __main__
+    {
+      methods:
+          "example";
+    }
+  ,#+END_SRC
+#+END_SRC
+
+#+CAPTION: Example cfengine3 SRC block with shebang altered
+#+BEGIN_SRC org
+  ,#+BEGIN_SRC cfengine3 :shebang /var/cfengine-3.7/bin/cf-agent -f- :tangle /tmp/example.cf
+    bundle agent example
+    {
+       reports:
+         "CFEngine $(sys.cf_version)";
+    }
+    bundle agent __main__
+
+      methods:
+          "example";
+    }
+  ,#+END_SRC
+#+END_SRC
+
+By default, a =body file control= to include the standard lib via
+=$(sys.libdir)= is included in exported files. This facilitates small snippets
+of policy and does not interfere with a literate style of policy maintenance.
+
+#+BEGIN_SRC org
+  ,#+BEGIN_SRC term
+    ~ $ cat /tmp/example.cf
+    #!/var/cfengine/bin/cf-agent -f-
+    body file control
+    {
+          inputs => { '$(sys.libdir)/stdlib.cf' };
+    }
+
+    bundle agent example
+    {
+        reports:
+         "CFEngine $(sys.cf_version)";
+    }
+    bundle agent __main__
+    {
+      methods:
+          "example";
+    }
+  ,#+END_SRC
+#+END_SRC
+
+By default tangled files are saved so that only the owner can read, write and
+execute (700). Use the =:tangle-mode= header argument to override the default.
+NOTE: This differs from typical CFEngine policy permissions (600).
+
+#+CAPTION: Example cfengine3 SRC block with permission 600
+#+BEGIN_SRC org
+  ,#+BEGIN_SRC cfengine3 :tangle /tmp/example.cf :tangle-mode (identity #o600)
+    bundle agent example
+    {
+       reports:
+         "CFEngine $(sys.cf_version)";
+    }
+    bundle agent __main__
+
+      methods:
+          "example";
+    }
+  ,#+END_SRC
+#+END_SRC
+
+*Why does ob-cfengine3 add a shebang and set the tangled file to executable by
+default?*
+
+The authors workflow consists of many small examples and snippets that are
+handed to many other people of varying organizations. Also, it's a nifty trick
+when combined with library =__main__= bundles for running partial sets of policy
+directly.
+
+*Why doesn't ob-cfengine3 add a =bundle agent __main__= to the end of exported files?*
+
+It's better suited for a snippet. It's not useful unless it's customized for the
+policy file.
+
+#+CAPTION: Example executing policy file and passing additional options to cf-agent
+#+BEGIN_SRC org
+  ,#+BEGIN_SRC term
+    ~ $ ./example.cf
+    R: CFEngine 3.13.0
+       error: Method 'example' failed in some repairs
+    ~ $ ./example.cf -I
+        info: Can't stat file '/tmp/./example.cf.missing' on 'localhost' in files.copy_from promise
+    R: CFEngine 3.13.0
+       error: Method 'example' failed in some repairs
+  ,#+END_SRC
+#+END_SRC
+
 
 * Installation
 
