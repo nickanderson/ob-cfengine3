@@ -22,7 +22,7 @@
 ;; Author: Nick Anderson <nick@cmdln.org>
 ;; Keywords: tools, convenience
 ;; URL: https://github.com/nickanderson/ob-cfengine3
-;; Version: 0.0.3
+;; Version: 0.0.4
 
 ;;; Commentary:
 ;; Execute CFEngine 3 policy inside org-mode src blocks.
@@ -32,7 +32,7 @@
 (defvar ob-cfengine3-command "cf-agent"
   "Name of command to use for executing cfengine policy.")
 
-(defvar ob-cfengine3-command-options ""
+(defvar ob-cfengine3-command-options nil
   "Option string that should be passed to the agent.
 Note that --file will be appended to the options.")
 
@@ -48,7 +48,12 @@ It is useful to inject into an example source block before execution.")
     (info . :any)
     (include-stdlib . :any)
     (define . :any)
-    (bundlesequence . :any))
+    (bundlesequence . :any)
+    (command . :any)
+    (command-in-result . :any)
+    (command-in-result-prompt . :any)
+    (command-in-result-command . :any)
+    (command-in-result-filename . :any))
   "CFEngine specific header arguments.")
 
 (defun org-babel-execute:cfengine3 (body params)
@@ -60,42 +65,54 @@ This function is called by `org-babel-execute-src-block'.
   block. `ob-cfengine3-command' is used to execute the
   temporary file."
 
-    (let* ((temporary-file-directory ".")
-           (debug (cdr (assoc :debug params)))
-           (verbose (cdr (assoc :verbose params)))
-           (info (cdr (assoc :info params)))
-           (use-locks (cdr (assoc :use-locks params)))
-           (include-stdlib (not (string= "no" (cdr (assoc :include-stdlib params)))))
-           (define (cdr (assoc :define params)))
-           (bundlesequence (cdr (assoc :bundlesequence params)))
-    (tempfile (make-temp-file "cfengine3-")))
-      (with-temp-file tempfile
-        (when include-stdlib (insert ob-cfengine3-file-control-stdlib))
-        (insert body))
-      (unwind-protect
-         (shell-command-to-string
-           (concat
-            ob-cfengine3-command
-            " "
-            (when bundlesequence (concat "--bundlesequence "  bundlesequence ))
-            " "
-            (when define (concat "--define "  define ))
-            " "
-            (unless use-locks "--no-lock ")
-
-            ;; When info header arg is yes add --info to the command string and throw away the args
-            (when info (concat "--info "))
-            " "
-            ;; When verbose header arg is yes add --verbose to the command string and throw away the args
-            (when verbose (concat "--verbose "))
-            " "
-            ;; When debug header arg is yes add --debug with all log modules enabled to the command string and throw away the args
-            (when debug (concat "--debug --log-modules=all "))
-            " "
-            ob-cfengine3-command-options
-            " "
-            (format " --file %s" (shell-quote-argument tempfile))))
-        (delete-file tempfile))))
+  (let* ((temporary-file-directory ".")
+         (debug (cdr (assoc :debug params)))
+         (verbose (cdr (assoc :verbose params)))
+         (info (cdr (assoc :info params)))
+         (use-locks (cdr (assoc :use-locks params)))
+         (include-stdlib (not (string= "no" (cdr (assoc :include-stdlib params)))))
+         (define (cdr (assoc :define params)))
+         (bundlesequence (cdr (assoc :bundlesequence params)))
+         (command (or (cdr (assoc :command params)) ob-cfengine3-command))
+         (command-in-result-command (or (cdr (assoc :command-in-result-command params)) command))
+         (command-in-result (cdr (assoc :command-in-result params)))
+         (command-in-result-prompt (or (cdr (assoc :command-in-result-prompt params)) "# "))
+         (tempfile (make-temp-file "cfengine3-"))
+         (command-in-result-filename (or (cdr (assoc :command-in-result-filename params)) tempfile)))
+    (with-temp-file tempfile
+      (when include-stdlib (insert ob-cfengine3-file-control-stdlib))
+      (insert body))
+    (unwind-protect
+        (let ((command-args
+               (concat
+                (when bundlesequence (concat "--bundlesequence "  bundlesequence " "))
+                (when define (concat "--define "  define " "))
+                (unless use-locks "--no-lock ")
+                ;; When info header arg is yes add --info to the
+                ;; command string and throw away the args
+                (when info (concat "--info "))
+                ;; When verbose header arg is yes add --verbose to the
+                ;; command string and throw away the args
+                (when verbose (concat "--verbose "))
+                ;; When debug header arg is yes add --debug with all
+                ;; log modules enabled to the command string and throw
+                ;; away the args
+                (when debug (concat "--debug --log-modules=all "))
+                (when ob-cfengine3-command-options (concat ob-cfengine3-command-options " ")))))
+          (concat
+           ;; Include a command line in the output when requested
+           (when command-in-result
+             (concat command-in-result-prompt
+                     command-in-result-command " "
+                     command-args
+                     (format "--file %s" (shell-quote-argument command-in-result-filename))
+                     "\n"))
+           ;; Execute command and return output
+           (shell-command-to-string
+            (concat command " "
+                    command-args
+                    (format "--file %s" (shell-quote-argument tempfile))))))
+      (delete-file tempfile))))
 
 (add-to-list 'org-src-lang-modes '("cfengine3" . cfengine3))
 (add-to-list 'org-babel-tangle-lang-exts '("cfengine3" . "cf"))
