@@ -88,9 +88,9 @@ This function is called by `org-babel-execute-src-block'.
                 (when bundlesequence (concat "--bundlesequence "  bundlesequence " "))
                 (when define (concat "--define "  define " "))
                 (unless use-locks "--no-lock ")
-                ;; When info header arg is yes add --info to the
+                ;; When info header arg is yes add --inform to the
                 ;; command string and throw away the args
-                (when info (concat "--info "))
+                (when info (concat "--inform "))
                 ;; When verbose header arg is yes add --verbose to the
                 ;; command string and throw away the args
                 (when verbose (concat "--verbose "))
