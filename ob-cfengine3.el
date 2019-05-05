@@ -42,17 +42,17 @@ It is useful to inject into an example source block before execution.")
 
 (defconst ob-cfengine3-header-args-cfengine3
   '(
-    (no-lock . :any)
     (debug . :any)
-    (verbose . :any)
     (info . :any)
+    (verbose . :any)
+    (use-locks . :any)
     (include-stdlib . :any)
     (define . :any)
     (bundlesequence . :any)
     (command . :any)
     (command-in-result . :any)
-    (command-in-result-prompt . :any)
     (command-in-result-command . :any)
+    (command-in-result-prompt . :any)
     (command-in-result-filename . :any))
   "CFEngine specific header arguments.")
 
@@ -66,18 +66,19 @@ This function is called by `org-babel-execute-src-block'.
   temporary file."
 
   (let* ((temporary-file-directory ".")
-         (debug (cdr (assoc :debug params)))
-         (verbose (cdr (assoc :verbose params)))
-         (info (cdr (assoc :info params)))
-         (use-locks (cdr (assoc :use-locks params)))
-         (include-stdlib (not (string= "no" (cdr (assoc :include-stdlib params)))))
-         (define (cdr (assoc :define params)))
-         (bundlesequence (cdr (assoc :bundlesequence params)))
-         (command (or (cdr (assoc :command params)) ob-cfengine3-command))
-         (command-in-result-command (or (cdr (assoc :command-in-result-command params)) command))
-         (command-in-result (cdr (assoc :command-in-result params)))
-         (command-in-result-prompt (or (cdr (assoc :command-in-result-prompt params)) "# "))
-         (tempfile (make-temp-file "cfengine3-"))
+         (debug                      (cdr (assoc :debug params)))
+         (info                       (cdr (assoc :info params)))
+         (verbose                    (cdr (assoc :verbose params)))
+         (use-locks                  (cdr (assoc :use-locks params)))
+         (include-stdlib             (not (string= "no" (cdr (assoc :include-stdlib params)))))
+         (define                     (cdr (assoc :define params)))
+         (bundlesequence             (cdr (assoc :bundlesequence params)))
+         (command                    (or (cdr (assoc :command params)) ob-cfengine3-command))
+         (command-in-result          (cdr (assoc :command-in-result params)))
+         (command-in-result-command  (or (cdr (assoc :command-in-result-command params)) command))
+         (command-in-result-prompt   (or (cdr (assoc :command-in-result-prompt params)) "# "))
+         (tempfile-dir               (or (cdr (assoc :tmpdir params)) "."))
+         (tempfile                   (make-temp-file (concat tempfile-dir "/cfengine3-")))
          (command-in-result-filename (or (cdr (assoc :command-in-result-filename params)) tempfile)))
     (with-temp-file tempfile
       (when include-stdlib (insert ob-cfengine3-file-control-stdlib))
@@ -88,19 +89,20 @@ This function is called by `org-babel-execute-src-block'.
                 (when bundlesequence (concat "--bundlesequence "  bundlesequence " "))
                 (when define (concat "--define "  define " "))
                 (unless use-locks "--no-lock ")
-                ;; When info header arg is yes add --inform to the
-                ;; command string and throw away the args
-                (when info (concat "--inform "))
-                ;; When verbose header arg is yes add --verbose to the
-                ;; command string and throw away the args
-                (when verbose (concat "--verbose "))
-                ;; When debug header arg is yes add --debug with all
-                ;; log modules enabled to the command string and throw
-                ;; away the args
+                (when info "--inform ")
+                (when verbose "--verbose ")
+                ;; When debug header arg is given, add --debug with
+                ;; all log modules enabled to the command string and
+                ;; throw away the args
                 (when debug (concat "--debug --log-modules=all "))
                 (when ob-cfengine3-command-options (concat ob-cfengine3-command-options " ")))))
           (concat
-           ;; Include a command line in the output when requested
+           ;; When the :command-in-result header arg is specified,
+           ;; include the command line in the output. The prompt,
+           ;; command and filename to use (instead of the real ones)
+           ;; can be specified with the :command-in-result-prompt,
+           ;; :command-in-result-command and
+           ;; :command-in-result-filename args.
            (when command-in-result
              (concat command-in-result-prompt
                      command-in-result-command " "
