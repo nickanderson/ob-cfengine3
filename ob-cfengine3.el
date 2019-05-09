@@ -56,6 +56,12 @@ It is useful to inject into an example source block before execution.")
     (command-in-result-filename . :any))
   "CFEngine specific header arguments.")
 
+(defun yes-or-true (str)
+  (or (string-equal str "yes")
+      (string-equal str "true")
+      (string-equal str "YES")
+      (string-equal str "TRUE")))
+
 (defun org-babel-execute:cfengine3 (body params)
   "Actuate a block of CFEngine 3 policy.
 This function is called by `org-babel-execute-src-block'.
@@ -66,15 +72,15 @@ This function is called by `org-babel-execute-src-block'.
   temporary file."
 
   (let* ((temporary-file-directory ".")
-         (debug                      (cdr (assoc :debug params)))
-         (info                       (cdr (assoc :info params)))
-         (verbose                    (cdr (assoc :verbose params)))
-         (use-locks                  (cdr (assoc :use-locks params)))
-         (include-stdlib             (not (string= "no" (cdr (assoc :include-stdlib params)))))
+         (debug                      (yes-or-true (cdr (assoc :debug params))))
+         (info                       (yes-or-true (cdr (assoc :info params))))
+         (verbose                    (yes-or-true (cdr (assoc :verbose params))))
+         (use-locks                  (yes-or-true (cdr (assoc :use-locks params))))
+         (include-stdlib             (yes-or-true (or (cdr (assoc :include-stdlib params)) "yes")))
          (define                     (cdr (assoc :define params)))
          (bundlesequence             (cdr (assoc :bundlesequence params)))
          (command                    (or (cdr (assoc :command params)) ob-cfengine3-command))
-         (command-in-result          (cdr (assoc :command-in-result params)))
+         (command-in-result          (yes-or-true (cdr (assoc :command-in-result params))))
          (command-in-result-command  (or (cdr (assoc :command-in-result-command params)) command))
          (command-in-result-prompt   (or (cdr (assoc :command-in-result-prompt params)) "# "))
          (tempfile-dir               (or (cdr (assoc :tmpdir params)) "."))
