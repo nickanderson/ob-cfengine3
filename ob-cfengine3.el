@@ -59,6 +59,7 @@ It is useful to inject into an example source block before execution.")
 (defun yes-or-true (str)
   (or (string-equal str "yes")
       (string-equal str "true")
+      (string-equal str "t")
       (string-equal str "YES")
       (string-equal str "TRUE")))
 
