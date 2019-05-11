@@ -40,6 +40,11 @@ Note that --file will be appended to the options.")
   "File control body to include the standard libriary from $(sys.libdir).
 It is useful to inject into an example source block before execution.")
 
+(defvar ob-cfengine3-wrap-in-main-template "bundle agent __main__\n{\n%s\n}\n"
+  "Template to use to wrap the contents of the source block in a
+  'main' bundle. Must contain exactly one '%s', where the body
+  will be inserted.")
+
 (defconst ob-cfengine3-header-args-cfengine3
   '(
     (debug . :any)
@@ -54,7 +59,8 @@ It is useful to inject into an example source block before execution.")
     (command-in-result . :any)
     (command-in-result-command . :any)
     (command-in-result-prompt . :any)
-    (command-in-result-filename . :any))
+    (command-in-result-filename . :any)
+    (wrap-in-main . :any))
   "CFEngine specific header arguments.")
 
 (defun yes-or-true (str)
@@ -88,10 +94,13 @@ This function is called by `org-babel-execute-src-block'.
          (command-in-result-prompt   (or (cdr (assoc :command-in-result-prompt params)) "# "))
          (tempfile-dir               (or (cdr (assoc :tmpdir params)) "."))
          (tempfile                   (make-temp-file (concat tempfile-dir "/cfengine3-")))
-         (command-in-result-filename (or (cdr (assoc :command-in-result-filename params)) tempfile)))
+         (command-in-result-filename (or (cdr (assoc :command-in-result-filename params)) tempfile))
+         (wrap-in-main               (yes-or-true (cdr (assoc :wrap-in-main params)))))
     (with-temp-file tempfile
       (when include-stdlib (insert ob-cfengine3-file-control-stdlib))
-      (insert body))
+      (if wrap-in-main
+          (insert (format ob-cfengine3-wrap-in-main-template body))
+          (insert body)))
     (unwind-protect
         (let ((command-args
                (concat
