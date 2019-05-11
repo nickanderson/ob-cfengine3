@@ -22,7 +22,7 @@
 ;; Author: Nick Anderson <nick@cmdln.org>
 ;; Keywords: tools, convenience
 ;; URL: https://github.com/nickanderson/ob-cfengine3
-;; Version: 0.0.4
+;; Version: 0.0.5
 
 ;;; Commentary:
 ;; Execute CFEngine 3 policy inside org-mode src blocks.
@@ -49,6 +49,7 @@ It is useful to inject into an example source block before execution.")
     (include-stdlib . :any)
     (define . :any)
     (bundlesequence . :any)
+    (log-level . :any)
     (command . :any)
     (command-in-result . :any)
     (command-in-result-command . :any)
@@ -80,6 +81,7 @@ This function is called by `org-babel-execute-src-block'.
          (include-stdlib             (yes-or-true (or (cdr (assoc :include-stdlib params)) "yes")))
          (define                     (cdr (assoc :define params)))
          (bundlesequence             (cdr (assoc :bundlesequence params)))
+         (log-level                  (cdr (assoc :log-level params)))
          (command                    (or (cdr (assoc :command params)) ob-cfengine3-command))
          (command-in-result          (yes-or-true (cdr (assoc :command-in-result params))))
          (command-in-result-command  (or (cdr (assoc :command-in-result-command params)) command))
@@ -102,6 +104,7 @@ This function is called by `org-babel-execute-src-block'.
                 ;; all log modules enabled to the command string and
                 ;; throw away the args
                 (when debug (concat "--debug --log-modules=all "))
+                (when log-level (concat "--log-level " log-level " "))
                 (when ob-cfengine3-command-options (concat ob-cfengine3-command-options " ")))))
           (concat
            ;; When the :command-in-result header arg is specified,
