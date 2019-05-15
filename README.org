@@ -1,7 +1,7 @@
 #+Title: Org Babel functions for CFEngine 3
 
     [[https://melpa.org/#/ob-cfengine3][file:https://melpa.org/packages/ob-cfengine3-badge.svg]]
-    
+
 * Table of contents                                                :toc_2_gh:
 - [[#usage][Usage]]
   - [[#respect-promise-locks][Respect promise locks]]
@@ -12,6 +12,7 @@
   - [[#tangled-src-blocks][Tangled SRC blocks]]
   - [[#use-a-custom-command-for-snippet-execution][Use a custom command for snippet execution]]
   - [[#include-command-in-the-output][Include command in the output]]
+  - [[#automatic-wrap-in-a-main-bundle][Automatic wrap in a =main= bundle]]
 - [[#installation][Installation]]
   - [[#from-source][From source]]
   - [[#using-package][Using package]]
@@ -84,7 +85,7 @@ define set =include-stdlib= to =nil= for example:
   : R: bundle agent main
   : R: {
   : R:   reports:
-  : R: 
+  : R:
   : R:     "My Content"
   : R:       printfile => cat($(this.promise_filename));
   : R: }
@@ -164,7 +165,7 @@ agent run as possible, use the [[*Run with debug level output][=debug= header ar
           "example";
     }
   ,#+END_SRC
-  
+
   ,#+RESULTS:
   :     info: Executing 'no timeout' ... '/bin/echo Hello World'
   :   notice: Q: ".../bin/echo Hello": Hello World
@@ -224,7 +225,7 @@ agent run as possible, use the [[*Run with debug level output][=debug= header ar
         "/bin/true";
     }
   ,#+END_SRC
-  
+
   ,#+RESULTS:
   ,#+begin_example
      debug: Trying to shlib_open extension plugin 'cfengine-enterprise.so' from '/home/nickanderson/.cfagent/lib/cfengine-enterprise.so'
@@ -368,7 +369,7 @@ For example, if you have a Docker image called which executes =cf-agent= as the 
           "My hostname: $(sys.fqhost)";
     }
   ,#+end_src
-  
+
   ,#+RESULTS:
   : R: My hostname: 5cd98f9265a8
 #+END_SRC
@@ -385,7 +386,7 @@ Normally, the RESULTS block only contains any output produced by the execution o
           "Hello world!";
     }
   ,#+end_src
-  
+
   ,#+RESULTS:
   : # docker run -v /tmp:/tmp zzamboni/cf-agent --no-lock --file /tmp/cfengine3-b7caCd
   : R: Hello world!
@@ -407,11 +408,27 @@ You can use these options to "prettify" the command shown, for example (contrast
           "Hello world!";
     }
   ,#+end_src
-  
+
   ,#+RESULTS:
   : > cf-agent --no-lock --file hello-world.cf
   : R: Hello world!
 #+END_SRC
+
+** Automatic wrap in a =main= bundle
+
+You can use the =:wrap-in-main= option to automatically wrap the contents of the SRC block in a =bundle agent main= before executing it. This is useful for including snippets that do not include the full bundle declaration, but that you still want to execute.
+
+#+begin_example
+,#+begin_src cfengine3 :wrap-in-main yes
+  reports:
+    "Hello world!";
+,#+end_src
+
+,#+RESULTS:
+: R: Hello world!
+#+end_example
+
+Note that this option *does not affect* the result of tangling the block. If =:tangle= is used, the written code will be exactly as in the block.
 
 * Installation
 
