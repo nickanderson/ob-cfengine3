@@ -432,7 +432,7 @@ Sometimes you may want to include in the document only the actual code to execut
 : R: Hello world!
 #+end_example
 
-#+begin_src shell :results output replace :wrap "src cfengine3"
+#+begin_src shell :results output replace :wrap "src cfengine3" :exports both
 cat /tmp/hello.cf
 #+end_src
 
