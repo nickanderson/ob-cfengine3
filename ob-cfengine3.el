@@ -40,7 +40,7 @@ Note that --file will be appended to the options.")
   "File control body to include the standard libriary from $(sys.libdir).
 It is useful to inject into an example source block before execution.")
 
-(defvar ob-cfengine3-run-with-main-template "bundle agent __main__\n{\n%s\n}\n"
+(defvar ob-cfengine3-wrap-with-main-template "bundle agent __main__\n{\n%s\n}\n"
   "Template to use to wrap the contents of the source block in a
   'main' bundle. Must contain exactly one '%s', where the body
   will be inserted.")
@@ -78,7 +78,6 @@ This function is called by `org-babel-execute-src-block'.
   `ob-cfengine3-file-control-stdlib and the BODY of the src
   block. `ob-cfengine3-command' is used to execute the
   temporary file."
-
   (let* ((temporary-file-directory ".")
          (debug                      (yes-or-true (cdr (assoc :debug params))))
          (info                       (yes-or-true (cdr (assoc :info params))))
@@ -95,11 +94,12 @@ This function is called by `org-babel-execute-src-block'.
          (tempfile-dir               (or (cdr (assoc :tmpdir params)) "."))
          (tempfile                   (make-temp-file (concat tempfile-dir "/cfengine3-")))
          (command-in-result-filename (or (cdr (assoc :command-in-result-filename params)) tempfile))
-         (run-with-main               (yes-or-true (cdr (assoc :run-with-main params)))))
+         (auto-main                  (yes-or-true (cdr (assoc :auto-main params))))
+         (run-with-main              (or (yes-or-true (cdr (assoc :run-with-main params))) auto-main)))
     (with-temp-file tempfile
       (when include-stdlib (insert ob-cfengine3-file-control-stdlib))
       (if run-with-main
-          (insert (format ob-cfengine3-run-with-main-template body))
+          (insert (format ob-cfengine3-wrap-with-main-template body))
           (insert body)))
     (unwind-protect
         (let ((command-args
@@ -147,6 +147,20 @@ This function is called by `org-babel-execute-src-block'.
         ;; By default, includ the standard library for exported files. To disable this set the :prologue header arg
         (:prologue . "body file control\n{\n      inputs => { '$(sys.libdir)/stdlib.cf' };\n}\n")
         (:results  . "output")))
+
+(defun org-babel-expand-body:cfengine3 (body params)
+  "Expand a block of CFEngine 3 policy before tangling.
+This function is called by `org-babel-tangle-single-block'.
+
+  If the `:tangle-with-main'' or `:auto-main' header arguments
+  are `yes', `true' or `t', the BODY is formatted according to
+  the template in `ob-cfengine3-wrap-with-main-template`,
+  otherwise it is returned as-is."
+  (let* ((auto-main (yes-or-true (cdr (assoc :auto-main params))))
+         (tangle-with-main (or (yes-or-true (cdr (assoc :tangle-with-main params))) auto-main)))
+    (if tangle-with-main
+        (format ob-cfengine3-wrap-with-main-template body)
+      body)))
 
 (provide 'ob-cfengine3)
 ;;; ob-cfengine3.el ends here
