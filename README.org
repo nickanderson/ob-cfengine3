@@ -416,10 +416,10 @@ You can use these options to "prettify" the command shown, for example (contrast
 
 ** Automatic wrap in a =main= bundle
 
-You can use the =:wrap-in-main= option to automatically wrap the contents of the SRC block in a =bundle agent main= before executing it. This is useful for including snippets that do not include the full bundle declaration, but that you still want to execute.
+You can use the =:run-with-main= option to automatically wrap the contents of the SRC block in a =bundle agent main= before executing it. This is useful for including snippets that do not include the full bundle declaration, but that you still want to execute.
 
 #+begin_example
-,#+begin_src cfengine3 :wrap-in-main yes
+,#+begin_src cfengine3 :run-with-main yes
   reports:
     "Hello world!";
 ,#+end_src
