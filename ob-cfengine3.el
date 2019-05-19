@@ -63,12 +63,36 @@ It is useful to inject into an example source block before execution.")
     (run-with-main . :any))
   "CFEngine specific header arguments.")
 
-(defun yes-or-true (str)
+(defun ob-cfengine3-header-arg (pname params)
+  "Returns the value of header argument PNAME, extracted from PARAMS."
+  (cdr (assoc pname params)))
+
+(defun ob-cfengine3-bool (str)
+  "Convert string to boolean. Strings `yes', `YES', `true',
+`TRUE' and `t' are considered true, anything else is false."
   (or (string-equal str "yes")
       (string-equal str "true")
       (string-equal str "t")
       (string-equal str "YES")
       (string-equal str "TRUE")))
+
+(defun ob-cfengine3-bool-arg (pname params)
+  "Returns the boolean value of header argument PNAME, extracted from PARAMS."
+  (ob-cfengine3-bool (ob-cfengine3-header-arg pname params)))
+
+(defun ob-cfengine3-tangle-file (&optional tangle-value)
+  "Return the filename to use for tangling a CFEngine code block.
+
+TANGLE-VALUE must be the value of the `:tangle' header
+argument. If `\"yes\"', returns the basename of the current
+buffer with the `.cf' extension. If `\"no\"' or `nil', returns
+`nil'. If any other string, it is returned as-is."
+  (cond
+   ((string= "yes" tangle-value)
+    (concat (file-name-sans-extension (buffer-file-name)) "."
+            (cdr (assoc "cfengine3" org-babel-tangle-lang-exts))))
+   ((or (null tangle-value) (string= "no" tangle-value)) nil)
+   ((> (length tangle-value) 0) tangle-value)))
 
 (defun org-babel-execute:cfengine3 (body params)
   "Actuate a block of CFEngine 3 policy.
@@ -79,23 +103,23 @@ This function is called by `org-babel-execute-src-block'.
   block. `ob-cfengine3-command' is used to execute the
   temporary file."
   (let* ((temporary-file-directory ".")
-         (debug                      (yes-or-true (cdr (assoc :debug params))))
-         (info                       (yes-or-true (cdr (assoc :info params))))
-         (verbose                    (yes-or-true (cdr (assoc :verbose params))))
-         (use-locks                  (yes-or-true (cdr (assoc :use-locks params))))
-         (include-stdlib             (yes-or-true (or (cdr (assoc :include-stdlib params)) "yes")))
-         (define                     (cdr (assoc :define params)))
-         (bundlesequence             (cdr (assoc :bundlesequence params)))
-         (log-level                  (cdr (assoc :log-level params)))
-         (command                    (or (cdr (assoc :command params)) ob-cfengine3-command))
-         (command-in-result          (yes-or-true (cdr (assoc :command-in-result params))))
-         (command-in-result-command  (or (cdr (assoc :command-in-result-command params)) command))
-         (command-in-result-prompt   (or (cdr (assoc :command-in-result-prompt params)) "# "))
-         (tempfile-dir               (or (cdr (assoc :tmpdir params)) "."))
+         (debug                      (ob-cfengine3-bool-arg :debug params))
+         (info                       (ob-cfengine3-bool-arg :info params))
+         (verbose                    (ob-cfengine3-bool-arg :verbose params))
+         (use-locks                  (ob-cfengine3-bool-arg :use-locks params))
+         (include-stdlib             (ob-cfengine3-bool (or (ob-cfengine3-header-arg :include-stdlib params) "yes")))
+         (define                     (ob-cfengine3-header-arg :define params))
+         (bundlesequence             (ob-cfengine3-header-arg :bundlesequence params))
+         (log-level                  (ob-cfengine3-header-arg :log-level params))
+         (command                    (or (ob-cfengine3-header-arg :command params) ob-cfengine3-command))
+         (command-in-result          (ob-cfengine3-bool-arg :command-in-result params))
+         (command-in-result-command  (or (ob-cfengine3-header-arg :command-in-result-command params) command))
+         (command-in-result-prompt   (or (ob-cfengine3-header-arg :command-in-result-prompt params) "# "))
+         (tempfile-dir               (or (ob-cfengine3-header-arg :tmpdir params) "."))
          (tempfile                   (make-temp-file (concat tempfile-dir "/cfengine3-")))
-         (command-in-result-filename (or (cdr (assoc :command-in-result-filename params)) tempfile))
-         (auto-main                  (yes-or-true (cdr (assoc :auto-main params))))
-         (run-with-main              (or (yes-or-true (cdr (assoc :run-with-main params))) auto-main)))
+         (command-in-result-filename (or (ob-cfengine3-header-arg :command-in-result-filename params) (ob-cfengine3-tangle-file (ob-cfengine3-header-arg :tangle params)) tempfile))
+         (auto-main                  (ob-cfengine3-bool-arg :auto-main params))
+         (run-with-main              (or (ob-cfengine3-bool-arg :run-with-main params) auto-main)))
     (with-temp-file tempfile
       (when include-stdlib (insert ob-cfengine3-file-control-stdlib))
       (if run-with-main
@@ -156,8 +180,8 @@ This function is called by `org-babel-tangle-single-block'.
   are `yes', `true' or `t', the BODY is formatted according to
   the template in `ob-cfengine3-wrap-with-main-template`,
   otherwise it is returned as-is."
-  (let* ((auto-main (yes-or-true (cdr (assoc :auto-main params))))
-         (tangle-with-main (or (yes-or-true (cdr (assoc :tangle-with-main params))) auto-main)))
+  (let* ((auto-main (ob-cfengine3-bool-arg :auto-main params))
+         (tangle-with-main (or (ob-cfengine3-bool-arg :tangle-with-main params) auto-main)))
     (if tangle-with-main
         (format ob-cfengine3-wrap-with-main-template body)
       body)))
