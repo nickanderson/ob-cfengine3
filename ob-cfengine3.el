@@ -65,7 +65,7 @@ It is useful to inject into an example source block before execution.")
 
 (defun ob-cfengine3-header-arg (pname params)
   "Returns the value of header argument PNAME, extracted from PARAMS."
-  (cdr (assoc pname params)))
+  (cdr (assq pname params)))
 
 (defun ob-cfengine3-bool (str)
   "Convert string to boolean. Strings `yes', `YES', `true',
@@ -181,10 +181,16 @@ This function is called by `org-babel-tangle-single-block'.
   the template in `ob-cfengine3-wrap-with-main-template`,
   otherwise it is returned as-is."
   (let* ((auto-main (ob-cfengine3-bool-arg :auto-main params))
-         (tangle-with-main (or (ob-cfengine3-bool-arg :tangle-with-main params) auto-main)))
-    (if tangle-with-main
-        (format ob-cfengine3-wrap-with-main-template body)
-      body)))
+         (tangle-with-main (or (ob-cfengine3-bool-arg :tangle-with-main params) auto-main))
+         (pro (ob-cfengine3-header-arg :prologue params))
+         (epi (ob-cfengine3-header-arg :epilogue params)))
+    (mapconcat #'identity
+               (append (when  pro (list pro))
+                       (list (if tangle-with-main
+                                 (format ob-cfengine3-wrap-with-main-template body)
+                               body))
+                       (when epi (list epi)))
+               "\n")))
 
 (provide 'ob-cfengine3)
 ;;; ob-cfengine3.el ends here
