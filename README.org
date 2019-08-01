@@ -1,6 +1,7 @@
 #+Title: Org Babel functions for CFEngine 3
 
-    [[https://melpa.org/#/ob-cfengine3][file:https://melpa.org/packages/ob-cfengine3-badge.svg]]
+[[https://melpa.org/#/ob-cfengine3][file:https://melpa.org/packages/ob-cfengine3-badge.svg]]
+[[file:./media/ob-cfengine3-demo-2019-08-01.gif]]
 
 * Table of contents                                                :toc_2_gh:
 - [[#usage][Usage]]
