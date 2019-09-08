@@ -60,12 +60,13 @@ It is useful to inject into an example source block before execution.")
     (command-in-result-command . :any)
     (command-in-result-prompt . :any)
     (command-in-result-filename . :any)
-    (run-with-main . :any))
+    (run-with-main . :any)
+    (short-options . :any))
   "CFEngine specific header arguments.")
 
 (defun ob-cfengine3-header-arg (pname params)
   "Returns the value of header argument PNAME, extracted from PARAMS."
-  (cdr (assoc pname params)))
+  (cdr (assq pname params)))
 
 (defun ob-cfengine3-bool (str)
   "Convert string to boolean. Strings `yes', `YES', `true',
@@ -94,6 +95,11 @@ buffer with the `.cf' extension. If `\"no\"' or `nil', returns
    ((or (null tangle-value) (string= "no" tangle-value)) nil)
    ((> (length tangle-value) 0) tangle-value)))
 
+(defun ob-cfengine3-option (long short flag)
+  "Returns either the LONG or the SHORT option, depending on the
+  value of FLAG (if FLAG is true, the short option is used)."
+  (if flag (concat "-" short) (concat "--" long)))
+
 (defun org-babel-execute:cfengine3 (body params)
   "Actuate a block of CFEngine 3 policy.
 This function is called by `org-babel-execute-src-block'.
@@ -119,7 +125,8 @@ This function is called by `org-babel-execute-src-block'.
          (tempfile                   (make-temp-file (concat tempfile-dir "/cfengine3-")))
          (command-in-result-filename (or (ob-cfengine3-header-arg :command-in-result-filename params) (ob-cfengine3-tangle-file (ob-cfengine3-header-arg :tangle params)) tempfile))
          (auto-main                  (ob-cfengine3-bool-arg :auto-main params))
-         (run-with-main              (or (ob-cfengine3-bool-arg :run-with-main params) auto-main)))
+         (run-with-main              (or (ob-cfengine3-bool-arg :run-with-main params) auto-main))
+         (short-opt                  (ob-cfengine3-bool-arg :short-options params)))
     (with-temp-file tempfile
       (when include-stdlib (insert ob-cfengine3-file-control-stdlib))
       (if run-with-main
@@ -128,16 +135,16 @@ This function is called by `org-babel-execute-src-block'.
     (unwind-protect
         (let ((command-args
                (concat
-                (when bundlesequence (concat "--bundlesequence "  bundlesequence " "))
-                (when define (concat "--define "  define " "))
-                (unless use-locks "--no-lock ")
-                (when info "--inform ")
-                (when verbose "--verbose ")
+                (when bundlesequence (concat (ob-cfengine3-option "bundlesequence" "b" short-opt) " " bundlesequence " "))
+                (when define (concat (ob-cfengine3-option "define" "D" short-opt) " " define " "))
+                (unless use-locks (concat (ob-cfengine3-option "no-lock" "K" short-opt) " "))
+                (when info (concat (ob-cfengine3-option "inform" "I" short-opt) " "))
+                (when verbose (concat (ob-cfengine3-option "verbose" "v" short-opt) " "))
                 ;; When debug header arg is given, add --debug with
                 ;; all log modules enabled to the command string and
                 ;; throw away the args
-                (when debug (concat "--debug --log-modules=all "))
-                (when log-level (concat "--log-level " log-level " "))
+                (when debug (concat (ob-cfengine3-option "debug" "d" short-opt) " --log-modules=all "))
+                (when log-level (concat (ob-cfengine3-option "log-level" "g" short-opt) " " log-level " "))
                 (when ob-cfengine3-command-options (concat ob-cfengine3-command-options " ")))))
           (concat
            ;; When the :command-in-result header arg is specified,
@@ -150,13 +157,13 @@ This function is called by `org-babel-execute-src-block'.
              (concat command-in-result-prompt
                      command-in-result-command " "
                      command-args
-                     (format "--file %s" (shell-quote-argument command-in-result-filename))
+                     (format (concat (ob-cfengine3-option "file" "f" short-opt) " %s") (shell-quote-argument command-in-result-filename))
                      "\n"))
            ;; Execute command and return output
            (shell-command-to-string
             (concat command " "
                     command-args
-                    (format "--file %s" (shell-quote-argument tempfile))))))
+                    (format (concat (ob-cfengine3-option "file" "f" short-opt) " %s") (shell-quote-argument tempfile))))))
       (delete-file tempfile))))
 
 (add-to-list 'org-src-lang-modes '("cfengine3" . cfengine3))
@@ -181,10 +188,16 @@ This function is called by `org-babel-tangle-single-block'.
   the template in `ob-cfengine3-wrap-with-main-template`,
   otherwise it is returned as-is."
   (let* ((auto-main (ob-cfengine3-bool-arg :auto-main params))
-         (tangle-with-main (or (ob-cfengine3-bool-arg :tangle-with-main params) auto-main)))
-    (if tangle-with-main
-        (format ob-cfengine3-wrap-with-main-template body)
-      body)))
+         (tangle-with-main (or (ob-cfengine3-bool-arg :tangle-with-main params) auto-main))
+         (pro (ob-cfengine3-header-arg :prologue params))
+         (epi (ob-cfengine3-header-arg :epilogue params)))
+    (mapconcat #'identity
+               (append (when  pro (list pro))
+                       (list (if tangle-with-main
+                                 (format ob-cfengine3-wrap-with-main-template body)
+                               body))
+                       (when epi (list epi)))
+               "\n")))
 
 (provide 'ob-cfengine3)
 ;;; ob-cfengine3.el ends here
