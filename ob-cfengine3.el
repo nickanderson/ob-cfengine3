@@ -55,11 +55,14 @@ It is useful to inject into an example source block before execution.")
     (define . :any)
     (bundlesequence . :any)
     (log-level . :any)
+    (extra-opts . :any)
     (command . :any)
     (command-in-result . :any)
     (command-in-result-command . :any)
     (command-in-result-prompt . :any)
     (command-in-result-filename . :any)
+    (command-in-result-multiline . :any)
+    (command-in-result-maxlen . :any)
     (run-with-main . :any)
     (short-options . :any))
   "CFEngine specific header arguments.")
@@ -109,43 +112,60 @@ This function is called by `org-babel-execute-src-block'.
   block. `ob-cfengine3-command' is used to execute the
   temporary file."
   (let* ((temporary-file-directory ".")
-         (debug                      (ob-cfengine3-bool-arg :debug params))
-         (info                       (ob-cfengine3-bool-arg :info params))
-         (verbose                    (ob-cfengine3-bool-arg :verbose params))
-         (use-locks                  (ob-cfengine3-bool-arg :use-locks params))
-         (include-stdlib             (ob-cfengine3-bool (or (ob-cfengine3-header-arg :include-stdlib params) "yes")))
-         (define                     (ob-cfengine3-header-arg :define params))
-         (bundlesequence             (ob-cfengine3-header-arg :bundlesequence params))
-         (log-level                  (ob-cfengine3-header-arg :log-level params))
-         (command                    (or (ob-cfengine3-header-arg :command params) ob-cfengine3-command))
-         (command-in-result          (ob-cfengine3-bool-arg :command-in-result params))
-         (command-in-result-command  (or (ob-cfengine3-header-arg :command-in-result-command params) command))
-         (command-in-result-prompt   (or (ob-cfengine3-header-arg :command-in-result-prompt params) "# "))
-         (tempfile-dir               (or (ob-cfengine3-header-arg :tmpdir params) "."))
-         (tempfile                   (make-temp-file (concat tempfile-dir "/cfengine3-")))
-         (command-in-result-filename (or (ob-cfengine3-header-arg :command-in-result-filename params) (ob-cfengine3-tangle-file (ob-cfengine3-header-arg :tangle params)) tempfile))
-         (auto-main                  (ob-cfengine3-bool-arg :auto-main params))
-         (run-with-main              (or (ob-cfengine3-bool-arg :run-with-main params) auto-main))
-         (short-opt                  (ob-cfengine3-bool-arg :short-options params)))
+         (debug                                 (ob-cfengine3-bool-arg :debug params))
+         (info                                  (ob-cfengine3-bool-arg :info params))
+         (verbose                               (ob-cfengine3-bool-arg :verbose params))
+         (use-locks                             (ob-cfengine3-bool-arg :use-locks params))
+         (include-stdlib                        (ob-cfengine3-bool (or (ob-cfengine3-header-arg :include-stdlib params) "yes")))
+         (define                                (ob-cfengine3-header-arg :define params))
+         (bundlesequence                        (ob-cfengine3-header-arg :bundlesequence params))
+         (log-level                             (ob-cfengine3-header-arg :log-level params))
+         (extra-opts                            (ob-cfengine3-header-arg :extra-opts params))
+         (command                               (or (ob-cfengine3-header-arg :command params) ob-cfengine3-command))
+         (command-in-result                     (ob-cfengine3-bool-arg :command-in-result params))
+         (command-in-result-command             (or (ob-cfengine3-header-arg :command-in-result-command params) command))
+         (command-in-result-prompt              (or (ob-cfengine3-header-arg :command-in-result-prompt params) "# "))
+         (command-in-result-multiline           (ob-cfengine3-bool-arg :command-in-result-multiline params))
+         (command-in-result-auto-ml             (string-equal (ob-cfengine3-header-arg :command-in-result-multiline params) "auto"))
+         (command-in-result-maxlen              (or (ob-cfengine3-header-arg :command-in-result-maxlen params) 80))
+         (tempfile-dir                          (or (ob-cfengine3-header-arg :tmpdir params) "."))
+         (tempfile                              (make-temp-file (concat tempfile-dir "/cfengine3-")))
+         (command-in-result-filename            (or (ob-cfengine3-header-arg :command-in-result-filename params) (ob-cfengine3-tangle-file (ob-cfengine3-header-arg :tangle params)) tempfile))
+         (auto-main                             (ob-cfengine3-bool-arg :auto-main params))
+         (run-with-main                         (or (ob-cfengine3-bool-arg :run-with-main params) auto-main))
+         (short-opt                             (ob-cfengine3-bool-arg :short-options params))
+         (command-in-result-prompt-plus-command (concat command-in-result-prompt command-in-result-command " ")))
+    (defun build-command-args (filename &optional sep)
+      (let ((sep (or sep " ")))
+        (mapconcat 'identity
+                   (delq nil
+                         (list (when bundlesequence (concat (ob-cfengine3-option "bundlesequence" "b" short-opt) " " bundlesequence))
+                               (when define (concat (ob-cfengine3-option "define" "D" short-opt) " " define))
+                               (unless use-locks (concat (ob-cfengine3-option "no-lock" "K" short-opt)))
+                               (when info (concat (ob-cfengine3-option "inform" "I" short-opt)))
+                               (when verbose (concat (ob-cfengine3-option "verbose" "v" short-opt)))
+                               ;; When debug header arg is given, add --debug with
+                               ;; all log modules enabled to the command string and
+                               ;; throw away the args
+                               (when debug (concat (ob-cfengine3-option "debug" "d" short-opt) " --log-modules=all"))
+                               (when log-level (concat (ob-cfengine3-option "log-level" "g" short-opt) " " log-level))
+                               (when extra-opts extra-opts)
+                               (when ob-cfengine3-command-options (concat ob-cfengine3-command-options))
+                               (when filename (format (concat (ob-cfengine3-option "file" "f" short-opt) " %s") (shell-quote-argument filename)))))
+                   sep)))
     (with-temp-file tempfile
       (when include-stdlib (insert ob-cfengine3-file-control-stdlib))
       (if run-with-main
           (insert (format ob-cfengine3-wrap-with-main-template body))
           (insert body)))
     (unwind-protect
-        (let ((command-args
-               (concat
-                (when bundlesequence (concat (ob-cfengine3-option "bundlesequence" "b" short-opt) " " bundlesequence " "))
-                (when define (concat (ob-cfengine3-option "define" "D" short-opt) " " define " "))
-                (unless use-locks (concat (ob-cfengine3-option "no-lock" "K" short-opt) " "))
-                (when info (concat (ob-cfengine3-option "inform" "I" short-opt) " "))
-                (when verbose (concat (ob-cfengine3-option "verbose" "v" short-opt) " "))
-                ;; When debug header arg is given, add --debug with
-                ;; all log modules enabled to the command string and
-                ;; throw away the args
-                (when debug (concat (ob-cfengine3-option "debug" "d" short-opt) " --log-modules=all "))
-                (when log-level (concat (ob-cfengine3-option "log-level" "g" short-opt) " " log-level " "))
-                (when ob-cfengine3-command-options (concat ob-cfengine3-command-options " ")))))
+        (let* ((multiline-sep (concat " \\\n" (make-string (length command-in-result-prompt-plus-command) ?\s)))
+               (single-line-cmd (build-command-args command-in-result-filename))
+               (multi-line-cmd (build-command-args command-in-result-filename multiline-sep))
+               (command-args
+                (if command-in-result-multiline multi-line-cmd
+                  (if (and command-in-result-auto-ml (> (+ (length single-line-cmd) (length command-in-result-prompt-plus-command)) command-in-result-maxlen))
+                        multi-line-cmd single-line-cmd))))
           (concat
            ;; When the :command-in-result header arg is specified,
            ;; include the command line in the output. The prompt,
@@ -154,16 +174,12 @@ This function is called by `org-babel-execute-src-block'.
            ;; :command-in-result-command and
            ;; :command-in-result-filename args.
            (when command-in-result
-             (concat command-in-result-prompt
-                     command-in-result-command " "
+             (concat command-in-result-prompt-plus-command
                      command-args
-                     (format (concat (ob-cfengine3-option "file" "f" short-opt) " %s") (shell-quote-argument command-in-result-filename))
                      "\n"))
            ;; Execute command and return output
            (shell-command-to-string
-            (concat command " "
-                    command-args
-                    (format (concat (ob-cfengine3-option "file" "f" short-opt) " %s") (shell-quote-argument tempfile))))))
+            (concat command " " (build-command-args tempfile)))))
       (delete-file tempfile))))
 
 (add-to-list 'org-src-lang-modes '("cfengine3" . cfengine3))
