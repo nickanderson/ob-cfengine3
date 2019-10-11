@@ -22,7 +22,7 @@
 ;; Author: Nick Anderson <nick@cmdln.org>
 ;; Keywords: tools, convenience
 ;; URL: https://github.com/nickanderson/ob-cfengine3
-;; Version: 0.0.6
+;; Version: 0.0.7
 
 ;;; Commentary:
 ;; Execute CFEngine 3 policy inside org-mode src blocks.
