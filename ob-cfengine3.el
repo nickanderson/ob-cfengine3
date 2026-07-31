@@ -39,9 +39,12 @@
   "Option string that should be passed to the agent.
 Note that --file will be appended to the options.")
 
-(defvar ob-cfengine3-file-control-stdlib "body file control{ inputs => { '$(sys.libdir)/stdlib.cf' };}\n"
+(defvar ob-cfengine3-file-control-stdlib "body file control\n{\n  inputs => { '$(sys.libdir)/stdlib.cf' };\n}\n"
   "File control body to include the standard libriary from $(sys.libdir).
-It is useful to inject into an example source block before execution.")
+It is useful to inject into an example source block before execution,
+and is the default `:prologue' for tangled files.  Formatted to match
+the output of `cfengine format', so that policy carrying this body is
+left untouched by the formatter.")
 
 (defvar ob-cfengine3-wrap-with-main-template "bundle agent __main__\n{\n%s\n}\n"
   "Template to wrap source block in a 'main' bundle.
@@ -185,13 +188,16 @@ PARAMS contains the parameters of the src block."
 (add-to-list 'org-babel-tangle-lang-exts '("cfengine3" . "cf"))
 
 (setq org-babel-default-header-args:cfengine3
-      '((:exports  . "both")
+      `((:exports  . "both")
         ;; I don't know how to make it use the identity format directly
         ;;(:tangle-mode  . 384) ;; (identity #o600) The standard default
         (:tangle-mode  . 448)   ;; (identity #o700) Since we write the shebang, lets see how useful execution bit is
         (:shebang . "#!/var/cfengine/bin/cf-agent -f-")
         ;; By default, includ the standard library for exported files. To disable this set the :prologue header arg
-        (:prologue . "body file control\n{\n      inputs => { '$(sys.libdir)/stdlib.cf' };\n}\n")
+        ;; Shares `ob-cfengine3-file-control-stdlib' so the executed and the
+        ;; tangled policy cannot drift apart. Read at load time, so set that
+        ;; variable before loading this file to change the default.
+        (:prologue . ,ob-cfengine3-file-control-stdlib)
         (:results  . "output")))
 
 (defun org-babel-expand-body:cfengine3 (body params)
